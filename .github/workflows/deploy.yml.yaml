@@ -1,0 +1,42 @@
+# Carpeta: .github/workflows | Archivo: deploy.yml
+name: CI CD Data Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Código
+        uses: actions/checkout@v3
+
+      - name: Configurar CLI de Databricks
+        uses: databricks/run-notebook@v0.0.1
+        with:
+          local-notebook-path: 'PrepAmb/01_prep_amb.py'
+          databricks-host: ${{ secrets.DATABRICKS_HOST }}
+          databricks-token: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Ejecutar Extracción (Bronze)
+        uses: databricks/run-notebook@v0.0.1
+        with:
+          local-notebook-path: 'proceso/02_extract_bronze.py'
+          databricks-host: ${{ secrets.DATABRICKS_HOST }}
+          databricks-token: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Ejecutar Transformación (Silver)
+        uses: databricks/run-notebook@v0.0.1
+        with:
+          local-notebook-path: 'proceso/03_transform_silver.py'
+          databricks-host: ${{ secrets.DATABRICKS_HOST }}
+          databricks-token: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Ejecutar Carga (Gold)
+        uses: databricks/run-notebook@v0.0.1
+        with:
+          local-notebook-path: 'proceso/04_load_gold.py'
+          databricks-host: ${{ secrets.DATABRICKS_HOST }}
+          databricks-token: ${{ secrets.DATABRICKS_TOKEN }}
